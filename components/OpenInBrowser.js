@@ -40,9 +40,10 @@ const { XPCOMUtils } = Cu.import("resource://gre/modules/XPCOMUtils.jsm", {});
 /**
  * This object stores information which will be used for intercepting URL's
  */
-function InterceptedInfo(url, mime) {
+function InterceptedInfo(url, mime, encoding) {
   this.url = url;
   this.mime = mime;
+  this.encoding = encoding;
 }
 
 function debug(msg) {
@@ -122,12 +123,12 @@ OpenInBrowser.prototype = {
     }
   },
 
-  addInterceptInfo: function OIB_addInterceptInfo(url, mime) {
+  addInterceptInfo: function OIB_addInterceptInfo(url, mime, encoding) {
     debug("Added intercept info " + url);
 
     let self = this;
     this._clearCacheEntry(url, function() {
-      self._interceptedInfos.push(new InterceptedInfo(url, mime));
+      self._interceptedInfos.push(new InterceptedInfo(url, mime, encoding));
       if (self._interceptedInfos.length == 1) {
         self._startCapture();
       }
@@ -180,6 +181,22 @@ OpenInBrowser.prototype = {
     }
   },
 
+  _allowEncodingChange: function OIB_allowEncodingChange(channel, encoding) {
+    if (!encoding) {
+      // No compression requested, nothing to change.
+      return false;
+    }
+    try {
+      var value = channel.getResponseHeader("Content-Encoding");
+      debug("old Content-Encoding: " + value + ", new: " + encoding);
+      // Header is already set, do not override.
+      return false;
+    } catch (e) {
+      // Compression is possible if the header is not set.
+      return true;
+    }
+  },
+
   observe: function OIB_observe(aSubject, aTopic, aData) {
 
     if (aTopic != EXAMINE_TOPIC && aTopic != EXAMINE_MERGED_TOPIC)
@@ -196,6 +213,12 @@ OpenInBrowser.prototype = {
 
     debug("Got a match " + url);
     channel.contentType = interceptedInfo.mime;
+
+    // Enable decompression when requested.
+    var encoding = interceptedInfo.encoding;
+    if (this._allowEncodingChange(channel, encoding)) {
+      channel.setResponseHeader("Content-Encoding", encoding, false);
+    }
 
     // Disable content sniffers that could override the new mime type
     channel.loadFlags &= ~Ci.nsIChannel.LOAD_CALL_CONTENT_SNIFFERS;

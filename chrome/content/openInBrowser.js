@@ -127,7 +127,7 @@ var OpenInBrowser = {
     return true;
   },
 
-  reloadWithMime: function OIB_reloadWithMime(uri, mime, doc) {
+  reloadWithMime: function OIB_reloadWithMime(uri, mime, encoding, doc) {
     if (mime == "view-source") {
       var iosvc = Cc["@mozilla.org/network/io-service;1"].
                   getService(Ci.nsIIOService);
@@ -135,7 +135,7 @@ var OpenInBrowser = {
     } else {
       var interceptor = Cc["@spasche.net/openinbrowser;1"].
                         getService().wrappedJSObject;
-      interceptor.addInterceptInfo(uri.spec, mime);
+      interceptor.addInterceptInfo(uri.spec, mime, encoding);
     }
     var tab = Application.activeWindow.activeTab;
     if (doc) {

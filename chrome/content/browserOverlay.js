@@ -33,6 +33,7 @@ var OIB_BrowserOverlay = {
 
   onSetMimeCommand: function OIBBO_onSetMimeCommand(event) {
     var mime = event.target.mime;
+    var encoding = "";
     if (!mime)
       return;
 
@@ -43,6 +44,7 @@ var OIB_BrowserOverlay = {
         return;
     }
 
-    OpenInBrowser.reloadWithMime(Application.activeWindow.activeTab.uri, mime)
+    OpenInBrowser.reloadWithMime(Application.activeWindow.activeTab.uri, mime,
+                                 encoding, null)
   }
 };

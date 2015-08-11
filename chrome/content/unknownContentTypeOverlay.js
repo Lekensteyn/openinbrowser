@@ -37,6 +37,10 @@ var OIB_DownloadOverlay = {
     return mime;
   },
 
+  _getEncoding: function OIBDO_getEncoding() {
+    return "gzip";
+  },
+
   dialogAccepted: function OIBDO_dialogAccepted() {
     if (document.getElementById("mode").selectedItem.id != "openInBrowser")
       return false;
@@ -44,13 +48,14 @@ var OIB_DownloadOverlay = {
     this.dialogAcceptRetVal = true;
 
     var mime = this._getMime();
+    var encoding = this._getEncoding();
     if (!mime) {
       // if the mime type is not valid, keep the dialog open
       this.dialogAcceptRetVal = false;
     } else {
       var parent = dialog.mContext.QueryInterface(Ci.nsIInterfaceRequestor)
                                   .getInterface(Ci.nsIDOMWindow);
-      OpenInBrowser.reloadWithMime(dialog.mLauncher.source, mime,
+      OpenInBrowser.reloadWithMime(dialog.mLauncher.source, mime, encoding,
                                    parent.document);
     }
 
